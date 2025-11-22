@@ -1,0 +1,9 @@
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+   <soap:Body>
+      <inv:StockResponse xmlns:inv="http://warehouse.legacy.com">
+         <inv:ProductID>P-101</inv:ProductID>
+         <inv:Quantity>500</inv:Quantity>
+         <inv:Status>IN_STOCK</inv:Status>
+      </inv:StockResponse>
+   </soap:Body>
+</soap:Envelope>
