@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	
+    <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="edf687ea-5c4e-42e2-9715-fa4beafd43d3" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="sys-inventoryFlow">
+		<http:listener doc:name="Listener" config-ref="HTTP_Listener_config" path="/inventory"/>
+		
+        <ee:transform doc:name="JSON to SOAP">
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns inv http://warehouse.legacy.com
+---
+{
+    soapenv#Envelope: {
+        soapenv#Body: {
+            inv#StockRequest: {
+                inv#ProductId: payload.productId,
+                inv#RequestDate: now() as String {format: "yyyy-MM-dd"}
+            }
+        }
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+
+        <file:read doc:name="Mock Legacy System" path="${app.home}/examples/inventory-response.xml"/>
+
+        <ee:transform doc:name="SOAP to JSON">
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://warehouse.legacy.com
+---
+{
+    productId: payload.Envelope.Body.ns0#StockResponse.ns0#ProductID,
+    quantity: payload.Envelope.Body.ns0#StockResponse.ns0#Quantity as Number,
+    status: payload.Envelope.Body.ns0#StockResponse.ns0#Status,
+    source: "Legacy SOAP System"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
