@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="ba58f6bf-e905-4e12-96ac-40e4d150d2c3" >
+		<file:connection workingDir="D:\Users\mirza\AnypointStudio\temp-files\finance_inbox" />
+	</file:config>
+	<flow name="sys-financeFlow" doc:id="3cb5ccc7-0796-4430-8970-83996c77000f" >
+		<file:listener doc:name="Poll Finance CSV" doc:id="4afa3fdf-8c73-4fd8-9c89-94e369271772" config-ref="File_Config" directory=".">
+			<scheduling-strategy >
+				<fixed-frequency frequency="10" timeUnit="SECONDS" />
+			</scheduling-strategy>
+			<file:matcher filenamePattern="*.csv" directories="EXCLUDE" />
+		</file:listener>
+		<ee:transform doc:name="CSV to JSON" doc:id="89c99c7d-553d-4883-908d-bbe22ca42d43" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+// We cast payload "as Array" to silence the warning
+(payload as Array) map (record, index) -> {
+    transactionId: record.Tx_ID,
+    amount: record.Amount as Number,
+    date: record.Date,
+    description: record.Description,
+    source: "Finance SFTP Server"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="bb72d82c-7dad-491e-9dc1-ed0d54c4cfe3" message="New Finance Data Ingested: #[payload]"/>
+	</flow>
+</mule>

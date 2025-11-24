@@ -29,3 +29,11 @@ _(Architecture Diagram to be inserted here)_
 ![Inventory System API Proof](/src/docs/assets/sys-inventory-proof.png)
 
 ---
+
+### 2. Financial Data Ingestion (CSV/SFTP)
+**Goal:** Automate the digitization of legacy financial records from flat files.
+**Proof:** The console log below shows the **Finance System API** detecting a new CSV file in the watched directory, parsing the flat-file structure, and converting it into a standard JSON array for downstream processing.
+
+![Finance System CSV Log](/src/docs/assets/sys-finance-csv-logs.png)
+
+---
