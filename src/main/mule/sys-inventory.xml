@@ -31,9 +31,29 @@ ns inv http://warehouse.legacy.com
 			</ee:message>
 		</ee:transform>
 
-        <file:read doc:name="Mock Legacy System" path="${app.home}/examples/inventory-response.xml"/>
-
-        <ee:transform doc:name="SOAP to JSON">
+        <ee:transform doc:name="Simulate Legacy Backend" doc:id="f9c51f9a-ffc9-45c0-8ec8-d2bc8f5ac318" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns soapenv http://schemas.xmlsoap.org/soap/envelope/
+ns inv http://warehouse.legacy.com
+---
+{
+    soapenv#Envelope: {
+        soapenv#Body: {
+            inv#StockResponse: {
+                inv#ProductID: vars.requestedId,
+                // DYNAMIC LOGIC: If ID is P-999, quantity is 0
+                inv#Quantity: if (vars.requestedId == "P-999") 0 else 500,
+                // DYNAMIC STATUS: If ID is P-999, status is OUT_OF_STOCK
+                inv#Status: if (vars.requestedId == "P-999") "OUT_OF_STOCK" else "IN_STOCK"
+            }
+        }
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="SOAP to JSON">
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -42,12 +62,9 @@ ns ns0 http://warehouse.legacy.com
 {
     productId: payload.Envelope.Body.ns0#StockResponse.ns0#ProductID,
     quantity: payload.Envelope.Body.ns0#StockResponse.ns0#Quantity as Number,
-    
-    // DYNAMIC LOGIC: If ID is P-999, return OUT_OF_STOCK, otherwise read from XML
-    status: if (vars.requestedId == "P-999") "OUT_OF_STOCK" 
-            else payload.Envelope.Body.ns0#StockResponse.ns0#Status,
-            
-    source: "Legacy SOAP System"
+    status: payload.Envelope.Body.ns0#StockResponse.ns0#Status,
+    // Updating source text to reflect the change
+    source: "Legacy SOAP System (Dynamic Mock)"
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

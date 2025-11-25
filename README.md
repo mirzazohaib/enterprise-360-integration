@@ -8,7 +8,55 @@
 
 ## 🏗 Architecture
 
-_(Architecture Diagram to be inserted here)_
+```mermaid
+graph TD
+    %% Actors
+    Client([Sales Portal / Mobile App])
+
+    %% Experience Layer
+    subgraph Experience_Layer [Experience Layer]
+        ExpOrder[Order Exp API]
+        ExpCust[Customer Exp API]
+    end
+
+    %% Process Layer
+    subgraph Process_Layer [Process Layer]
+        ProcOrder[Order Orchestration API]
+        Proc360[Customer 360 Aggregator]
+    end
+
+    %% System Layer
+    subgraph System_Layer [System Layer]
+        SysInv[Inventory System API]
+        SysDB[Fulfillment System API]
+        SysCRM[CRM System API]
+        SysFin[Finance System API]
+    end
+
+    %% Backends
+    Legacy((Legacy SOAP))
+    NeonDB[(Neon PostgreSQL)]
+    Reqres((SaaS CRM))
+    CSV((SFTP / CSV))
+
+    %% Connections
+    Client --> ExpOrder
+    Client --> ExpCust
+
+    ExpOrder --> ProcOrder
+    ExpCust --> Proc360
+
+    ProcOrder -- Check Stock --> SysInv
+    ProcOrder -- Insert Order --> SysDB
+
+    Proc360 -- Parallel Call --> SysCRM
+    Proc360 -- Parallel Call --> SysFin
+
+    SysInv <--> Legacy
+    SysDB <--> NeonDB
+    SysCRM <--> Reqres
+    SysFin <--> CSV
+```
 
 ## 🚀 Key Features
 
@@ -79,3 +127,13 @@ _(Architecture Diagram to be inserted here)_
 ![Customer 360 Proof](/src/docs/assets/proc-customer360-proof.png)
 
 ---
+
+## 📉 Agile Delivery Methodology
+
+This project followed a strict **Agile Scrum** methodology managed via JIRA.
+
+- **Sprints:** 2-week delivery cycles.
+- **Epics:** Grouped by Architectural Layer (System, Process, Experience).
+- **Stories:** Defined with clear Acceptance Criteria and Gherkin syntax.
+
+![JIRA Backlog](/src/docs/assets/jira-backlog.png)
