@@ -31,9 +31,19 @@ _(Architecture Diagram to be inserted here)_
 ---
 
 ### 2. Financial Data Ingestion (CSV/SFTP)
+
 **Goal:** Automate the digitization of legacy financial records from flat files.
 **Proof:** The console log below shows the **Finance System API** detecting a new CSV file in the watched directory, parsing the flat-file structure, and converting it into a standard JSON array for downstream processing.
 
 ![Finance System CSV Log](/src/docs/assets/sys-finance-csv-logs.png)
+
+---
+
+### 3. External CRM Integration (REST & SaaS)
+
+**Goal:** Unify customer profile data from external SaaS platforms using secure API Key authentication.
+**Proof:** The screenshot below shows the **CRM System API** proxying a request to an external REST service (reqres.in), injecting the required `x-api-key` header, and transforming the specific vendor response into our canonical "Customer Profile" JSON format.
+
+![CRM System API Proof](/src/docs/assets/sys-crm-proof.png)
 
 ---
