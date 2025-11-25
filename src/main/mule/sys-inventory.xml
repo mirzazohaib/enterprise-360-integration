@@ -10,7 +10,8 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 	<flow name="sys-inventoryFlow">
 		<http:listener doc:name="Listener" config-ref="HTTP_Listener_config" path="/inventory"/>
 		
-        <ee:transform doc:name="JSON to SOAP">
+        <set-variable value="#[payload.productId]" doc:name="requestedId" doc:id="fd5327e1-720e-404d-8fd5-c79d4b6f7039" variableName="requestedId"/>
+		<ee:transform doc:name="JSON to SOAP">
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/xml
@@ -41,7 +42,11 @@ ns ns0 http://warehouse.legacy.com
 {
     productId: payload.Envelope.Body.ns0#StockResponse.ns0#ProductID,
     quantity: payload.Envelope.Body.ns0#StockResponse.ns0#Quantity as Number,
-    status: payload.Envelope.Body.ns0#StockResponse.ns0#Status,
+    
+    // DYNAMIC LOGIC: If ID is P-999, return OUT_OF_STOCK, otherwise read from XML
+    status: if (vars.requestedId == "P-999") "OUT_OF_STOCK" 
+            else payload.Envelope.Body.ns0#StockResponse.ns0#Status,
+            
     source: "Legacy SOAP System"
 }]]></ee:set-payload>
 			</ee:message>

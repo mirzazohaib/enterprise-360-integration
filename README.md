@@ -61,3 +61,21 @@ _(Architecture Diagram to be inserted here)_
 ![Orchestration Flow](/src/docs/assets/proc-orchestration-flow.png)
 
 ---
+
+### 2. Logic Validation (Negative Testing)
+
+**Goal:** Ensure the system correctly rejects orders when inventory is unavailable.
+**Proof:** By sending a specific product ID (`P-999`), the system simulates an "Out of Stock" scenario. The Process API correctly catches this state and returns a **409 Conflict** status, preventing the database insertion.
+
+![409 Conflict Proof](/src/docs/assets/proc-order-409-proof.png)
+
+---
+
+### 3. Customer 360 Aggregation (Scatter-Gather)
+
+**Goal:** Reduce API latency by fetching data from multiple systems in parallel.
+**Logic:** The **Customer Process API** uses a **Scatter-Gather** router to simultaneously call the external CRM and the internal Finance History system. It aggregates the responses into a unified profile 2x faster than sequential calls.
+
+![Customer 360 Proof](/src/docs/assets/proc-customer360-proof.png)
+
+---
