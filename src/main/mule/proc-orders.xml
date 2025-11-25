@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_Internal" doc:name="HTTP Request config" doc:id="5b33e298-4f1a-45e3-ba2d-5c8e7ba779bf" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<flow name="proc-ordersFlow" doc:id="5ecc422f-8c95-4d97-943e-283b1022ff70" >
+		<http:listener doc:name="Listener" doc:id="61e3e894-2704-40a3-9ff7-09118cc0ca3e" config-ref="HTTP_Listener_config" path="/process/orders">
+			<http:response statusCode="#[vars.httpStatus default 200]" />
+			<http:error-response statusCode="#[vars.httpStatus default 200]" />
+		</http:listener>
+		<set-variable value='#[payload]' doc:name="originalOrder" doc:id="318c9322-b3fe-4e6c-8c1f-7dbc2654dfe8" variableName="originalOrder"/>
+		<http:request doc:name="Check Inventory" doc:id="a326d60e-0017-41e7-942d-ff40b2f6f9b6" config-ref="HTTP_Request_Internal" path="/inventory" method="POST">
+			<http:body ><![CDATA[#[{
+    "productId": vars.originalOrder.productId
+}]]]></http:body>
+		</http:request>
+		<choice doc:name="Choice" doc:id="06528069-d445-4e9d-adce-c3a7679bf3f9" >
+			<when expression='payload.status == "IN_STOCK"'>
+				<http:request doc:name="Create Order" doc:id="bac1e78b-f102-4af8-a06c-a1c08eea5403" config-ref="HTTP_Request_Internal" method="POST" path="/fulfillment">
+					<http:body ><![CDATA[#[vars.originalOrder]]]></http:body>
+				</http:request>
+			</when>
+			<otherwise >
+				<set-payload value='#[output application/json&#10;---&#10;{&#10;    "status": "Rejected",&#10;    "reason": "Item is out of stock",&#10;    "productId": vars.originalOrder.productId&#10;}]' doc:name="Set Payload" doc:id="5e8a8449-7dfb-4603-9313-a7fd4dbaca32" />
+				<set-variable value="409" doc:name="httpStatus" doc:id="55f22e42-701f-4b6e-a8ca-5eda748b540c" variableName="httpStatus"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

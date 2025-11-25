@@ -47,3 +47,17 @@ _(Architecture Diagram to be inserted here)_
 ![CRM System API Proof](/src/docs/assets/sys-crm-proof.png)
 
 ---
+
+## 🧠 Process Layer (Orchestration)
+
+### 1. Smart Order Routing
+
+**Goal:** Implement business logic to prevent orders for out-of-stock items.
+**Logic:** The **Process API** orchestrates calls between the Inventory System and the Fulfillment Database. It uses a **Choice Router** to make real-time decisions:
+
+- **Path A (In Stock):** Proceed to insert order into PostgreSQL.
+- **Path B (Out of Stock):** Immediately reject order with HTTP 409 Conflict.
+
+![Orchestration Flow](/src/docs/assets/proc-orchestration-flow.png)
+
+---

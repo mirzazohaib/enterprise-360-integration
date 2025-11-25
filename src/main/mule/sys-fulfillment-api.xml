@@ -1,11 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
-	<configuration-properties doc:name="Configuration properties" doc:id="d4e6c0c3-ee73-4ef3-9adb-0031164c8dcc" file="local.yaml" />
-	<db:config name="Database_Config" doc:name="Database Config" doc:id="17b7a613-91dc-4bfa-a7b5-677f0a37557f" >
+
+	<configuration-properties doc:name="Configuration properties" file="local.yaml" />
+
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config">
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+
+	<db:config name="Database_Config" doc:name="Database Config">
 		<db:generic-connection url="jdbc:postgresql://${db.host}:${db.port}/${db.database}?sslmode=require" driverClassName="org.postgresql.Driver" user="${db.user}" password="${db.password}" />
 	</db:config>
+
+	<flow name="sys-fulfillment-apiFlow">
+		<http:listener doc:name="Listener" config-ref="HTTP_Listener_config" path="/fulfillment" allowedMethods="POST"/>
+		
+		<logger level="INFO" doc:name="Log Order" message="Received Order for DB: #[payload]"/>
+		
+		<db:insert doc:name="Insert Order" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO processed_orders (order_id, customer_name, total_amount, status)
+VALUES (:id, :name, :amount, 'RECEIVED')]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"id": payload.orderId,
+	"name": payload.customerName,
+	"amount": payload.amount
+}]]]></db:input-parameters>
+		</db:insert>
+		
+		<ee:transform doc:name="Success Response">
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ "status": "Success", "message": "Order persisted to database" }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
 </mule>
