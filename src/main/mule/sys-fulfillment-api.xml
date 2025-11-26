@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
 
 	<configuration-properties doc:name="Configuration properties" file="local.yaml" />
 
@@ -17,6 +18,11 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 		<db:generic-connection url="jdbc:postgresql://${db.host}:${db.port}/${db.database}?sslmode=require" driverClassName="org.postgresql.Driver" user="${db.user}" password="${db.password}" />
 	</db:config>
 
+	<vm:config name="VM_Config" doc:name="VM Config" doc:id="8005652e-5dd5-46c3-b119-db2e189317da" >
+		<vm:queues >
+			<vm:queue queueName="dlq" />
+		</vm:queues>
+	</vm:config>
 	<flow name="sys-fulfillment-apiFlow">
 		<http:listener doc:name="Listener" config-ref="HTTP_Listener_config" path="/fulfillment" allowedMethods="POST"/>
 		
@@ -40,5 +46,23 @@ output application/json
 { "status": "Success", "message": "Order persisted to database" }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8e7100db-1968-4b67-abb6-d01ef97deb2b" >
+				<vm:publish queueName="dlq" doc:name="Publish" doc:id="c8739941-79a1-4563-a84a-978852e86d30" config-ref="VM_Config"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="process-dlq-flow" doc:id="d0ed6c11-77e1-41da-9000-542e9631f728" >
+		<vm:listener queueName="dlq" doc:name="Listener" doc:id="0ea6d0c0-1e38-4175-ad76-071a4232acc4" config-ref="VM_Config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="dcfcfd95-8e68-4225-8d9c-2e3381b5b710" message="[DLQ EVENT] Message received in Dead Letter Queue: #[payload]"/>
+		<db:insert doc:name="Insert" doc:id="e1d9eb03-e38d-48a6-a9af-20915cd9748f" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO dlq_error_log (correlation_id, error_message, original_payload)
+VALUES (:cid, :error, :payload)				]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+    "cid": correlationId,
+    "error": "Processing Failed",
+    "payload": write(payload, "application/json")
+}]]]></db:input-parameters>
+		</db:insert>
 	</flow>
 </mule>

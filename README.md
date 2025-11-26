@@ -74,7 +74,7 @@ graph TD
 **Goal:** Abstract the complexity of the legacy XML-based inventory system.
 **Proof:** The screenshot below demonstrates the **Inventory System API** accepting a clean JSON request. Internally, the flow transforms this into a SOAP Envelope, queries the mock legacy backend, and maps the XML response back to simplified JSON.
 
-![Inventory System API Proof](/src/docs/assets/sys-inventory-proof.png)
+![Inventory System API Proof](docs/assets/sys-inventory-proof.png)
 
 ---
 
@@ -83,7 +83,7 @@ graph TD
 **Goal:** Automate the digitization of legacy financial records from flat files.
 **Proof:** The console log below shows the **Finance System API** detecting a new CSV file in the watched directory, parsing the flat-file structure, and converting it into a standard JSON array for downstream processing.
 
-![Finance System CSV Log](/src/docs/assets/sys-finance-csv-logs.png)
+![Finance System CSV Log](docs/assets/sys-finance-csv-logs.png)
 
 ---
 
@@ -92,7 +92,25 @@ graph TD
 **Goal:** Unify customer profile data from external SaaS platforms using secure API Key authentication.
 **Proof:** The screenshot below shows the **CRM System API** proxying a request to an external REST service (reqres.in), injecting the required `x-api-key` header, and transforming the specific vendor response into our canonical "Customer Profile" JSON format.
 
-![CRM System API Proof](/src/docs/assets/sys-crm-proof.png)
+![CRM System API Proof](docs/assets/sys-crm-proof.png)
+
+---
+
+## 🛡️ Reliability & Resilience
+
+### 1. Dead Letter Queue (DLQ) Pattern
+
+**Goal:** Prevent data loss during database outages.
+**Architecture:**
+
+1.  **Try:** The system attempts to insert the order into PostgreSQL.
+2.  **Catch:** If connectivity fails, the **On Error Propagate** scope catches the transaction.
+3.  **Recover:** The payload is published to a persistent **VM Queue (DLQ)**.
+4.  **Process:** A separate background flow listens to the DLQ and safely archives the failed message for manual retry.
+
+**Proof:** The screenshot below shows the `dlq_error_log` table capturing a failed transaction that would have otherwise been lost.
+
+![DLQ Proof](docs/assets/rel-dlq-proof.png)
 
 ---
 
@@ -106,7 +124,7 @@ graph TD
 - **Path A (In Stock):** Proceed to insert order into PostgreSQL.
 - **Path B (Out of Stock):** Immediately reject order with HTTP 409 Conflict.
 
-![Orchestration Flow](/src/docs/assets/proc-orchestration-flow.png)
+![Orchestration Flow](docs/assets/proc-orchestration-flow.png)
 
 ---
 
@@ -115,7 +133,7 @@ graph TD
 **Goal:** Ensure the system correctly rejects orders when inventory is unavailable.
 **Proof:** By sending a specific product ID (`P-999`), the system simulates an "Out of Stock" scenario. The Process API correctly catches this state and returns a **409 Conflict** status, preventing the database insertion.
 
-![409 Conflict Proof](/src/docs/assets/proc-order-409-proof.png)
+![409 Conflict Proof](docs/assets/proc-order-409-proof.png)
 
 ---
 
@@ -124,7 +142,7 @@ graph TD
 **Goal:** Reduce API latency by fetching data from multiple systems in parallel.
 **Logic:** The **Customer Process API** uses a **Scatter-Gather** router to simultaneously call the external CRM and the internal Finance History system. It aggregates the responses into a unified profile 2x faster than sequential calls.
 
-![Customer 360 Proof](/src/docs/assets/proc-customer360-proof.png)
+![Customer 360 Proof](docs/assets/proc-customer360-proof.png)
 
 ---
 
@@ -136,4 +154,4 @@ This project followed a strict **Agile Scrum** methodology managed via JIRA.
 - **Epics:** Grouped by Architectural Layer (System, Process, Experience).
 - **Stories:** Defined with clear Acceptance Criteria and Gherkin syntax.
 
-![JIRA Backlog](/src/docs/assets/jira-backlog.png)
+![JIRA Backlog](docs/assets/jira-backlog.png)
