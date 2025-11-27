@@ -157,6 +157,17 @@ graph TD
 
 ---
 
+## 🧪 Quality Assurance
+
+### 1. Automated Unit Testing (MUnit)
+
+**Goal:** Verify business logic transformations in isolation without external dependencies.
+**Proof:** The MUnit test suite validates the **Inventory System API**. It mocks the input payload (`P-101`) and asserts that the flow correctly returns the status `IN_STOCK`, proving the DataWeave logic is accurate.
+
+![MUnit Test Result](docs/assets/dev-munit-proof.png)
+
+---
+
 ## 📉 Agile Delivery Methodology
 
 This project followed a strict **Agile Scrum** methodology managed via JIRA.
