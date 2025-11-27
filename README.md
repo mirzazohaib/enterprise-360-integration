@@ -114,6 +114,17 @@ graph TD
 
 ---
 
+### 2. Global Error Handling Strategy
+
+**Goal:** Ensure a consistent, professional API experience even when systems fail.
+**Architecture:** A centralized Error Handler catches all system exceptions (404 Not Found, 405 Method Not Allowed, 500 Server Error). Instead of exposing raw Java stack traces, the API transforms these into standardized JSON error responses with correlation IDs for tracking.
+
+**Proof:** The screenshot below shows the Global Handler catching an invalid `GET` request (Method Not Allowed) and returning a clean JSON response instead of a system crash.
+
+![Global Error Handler Proof](docs/assets/rel-global-error-proof.png)
+
+---
+
 ## 🧠 Process Layer (Orchestration)
 
 ### 1. Smart Order Routing

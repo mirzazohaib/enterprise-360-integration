@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+    <error-handler name="Global_Error_Handler">
+		
+        <on-error-propagate type="HTTP:NOT_FOUND" enableNotifications="true" logException="true">
+			<set-variable value="404" doc:name="Set 404" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "Resource Not Found",
+    "details": error.description
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+
+        <on-error-propagate type="HTTP:METHOD_NOT_ALLOWED">
+			<set-variable value="405" doc:name="Set 405" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "Method Not Allowed",
+    "details": error.description
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+
+        <on-error-propagate type="ANY" enableNotifications="true" logException="true">
+			<set-variable value="500" doc:name="Set 500" variableName="httpStatus"/>
+			<ee:transform doc:name="Error Message">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "error": "Internal Server Error",
+    "details": error.description,
+    "correlationId": correlationId
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-propagate>
+        
+	</error-handler>
+</mule>

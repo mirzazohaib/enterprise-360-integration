@@ -10,7 +10,9 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 	<flow name="proc-ordersFlow" doc:id="5ecc422f-8c95-4d97-943e-283b1022ff70" >
 		<http:listener doc:name="Listener" doc:id="61e3e894-2704-40a3-9ff7-09118cc0ca3e" config-ref="HTTP_Listener_config" path="/process/orders">
 			<http:response statusCode="#[vars.httpStatus default 200]" />
-			<http:error-response statusCode="#[vars.httpStatus default 200]" />
+			<http:error-response statusCode="#[vars.httpStatus default 500]" >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
 		</http:listener>
 		<set-variable value='#[payload]' doc:name="originalOrder" doc:id="318c9322-b3fe-4e6c-8c1f-7dbc2654dfe8" variableName="originalOrder"/>
 		<http:request doc:name="Check Inventory" doc:id="a326d60e-0017-41e7-942d-ff40b2f6f9b6" config-ref="HTTP_Request_Internal" path="/inventory" method="POST">

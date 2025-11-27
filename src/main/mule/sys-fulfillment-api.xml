@@ -23,6 +23,7 @@ http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/cu
 			<vm:queue queueName="dlq" />
 		</vm:queues>
 	</vm:config>
+	<configuration doc:name="Configuration" doc:id="3e542e69-70f1-4057-a3d3-f496a544c472" defaultErrorHandler-ref="Global_Error_Handler" />
 	<flow name="sys-fulfillment-apiFlow">
 		<http:listener doc:name="Listener" config-ref="HTTP_Listener_config" path="/fulfillment" allowedMethods="POST"/>
 		
