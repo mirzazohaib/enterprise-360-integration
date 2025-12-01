@@ -87,6 +87,16 @@ graph TD
 
 ---
 
+### 3. Contract-First Design (Experience Layer)
+
+**Goal:** Enforce strict API governance and decouple frontend consumers from backend logic.
+**Implementation:**
+
+- **RAML 1.0 Specification:** Defined a strict schema for the Order API (`enterprise-360.raml`) validating input data types before processing begins.
+- **APIKit Router:** Automatically generates flows from the contract and routes requests to the appropriate implementation logic.
+
+---
+
 ## 📸 Implementation Evidence
 
 ### 1. Legacy System Modernization (SOAP to REST)
@@ -185,6 +195,21 @@ graph TD
 **Proof:** The MUnit test suite validates the **Inventory System API**. It mocks the input payload (`P-101`) and asserts that the flow correctly returns the status `IN_STOCK`, proving the DataWeave logic is accurate.
 
 ![MUnit Test Result](docs/assets/dev-munit-proof.png)
+
+---
+
+## 🚀 End-to-End Validation
+
+**Goal:** Prove that the entire 3-layer architecture, from the strict RAML contract down to the secure database insertion, functions correctly as a unified system.
+
+**Proof:** The composite screenshot below demonstrates the successful execution flow:
+
+1.  **Mule Flow:** The RAML-generated APIKit router receiving the request.
+2.  **Client Request:** Insomnia sending a valid JSON payload to the `/api/orders` endpoint.
+3.  **API Response:** The `201 Created` success status returned by the Experience API.
+4.  **Database Persistence:** The corresponding record securely inserted into the Neon PostgreSQL table.
+
+![Enterprise End-to-End Proof](docs/assets/enterprise-e2e-proof.png)
 
 ---
 

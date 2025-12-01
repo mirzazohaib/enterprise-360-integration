@@ -1,0 +1,56 @@
+#%RAML 1.0
+title: Enterprise 360 Order API
+version: v1
+protocols: [HTTP, HTTPS]
+mediaType: application/json
+
+# Data Types (The Schema)
+types:
+  OrderRequest:
+    type: object
+    properties:
+      orderId:
+        type: string
+        example: "ORD-999"
+      customerName:
+        type: string
+        example: "Acme Corp"
+      amount:
+        type: number
+        example: 150.50
+      productId:
+        type: string
+        example: "P-101"
+
+  OrderResponse:
+    type: object
+    properties:
+      status: string
+      message: string
+      # orderId is optional in response depending on success/fail
+      orderId: 
+        type: string
+        required: false
+
+# The Endpoints
+/orders:
+  post:
+    displayName: Submit Order
+    description: Receives a new order from the Sales Portal and orchestrates fulfillment.
+    body:
+      application/json:
+        type: OrderRequest
+    responses:
+      201:
+        body:
+          application/json:
+            type: OrderResponse
+            example:
+              status: "Success"
+              message: "Order persisted to database"
+              orderId: "ORD-999"
+      409:
+        description: Conflict - Inventory Out of Stock
+        body:
+          application/json:
+            example: { "status": "Rejected", "message": "Item out of stock" }
