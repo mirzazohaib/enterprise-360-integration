@@ -50,3 +50,12 @@ velocity.log
 # SECURITY - DO NOT EDIT  #
 # ----------------------- #
 src/main/resources/local.yaml
+
+# ----------------------- #
+# SECURITY - NEW CONFIGS  #
+# ----------------------- #
+# Ignore the file with the REAL password
+src/main/resources/properties/secure-dev.yaml
+
+# (Optional) If you ever create a real key file
+*.key

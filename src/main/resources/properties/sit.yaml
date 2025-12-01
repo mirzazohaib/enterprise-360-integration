@@ -1,0 +1,20 @@
+http:
+  port: "8081"
+
+db:
+  host: "prod-db-cluster.aws.neon.tech" # DUMMY VALUE
+  port: "5432"
+  user: "prod_svc_account"              # DUMMY VALUE
+  database: "fulfillment_prod"
+  # Password will be in secure-prod.yaml
+
+crm:
+  host: "api.salesforce.com"            # Real Prod URL example
+  port: "443"
+  basePath: "/services/data/v58.0"
+
+inventory:
+  mock_path: "${app.home}/examples/inventory-response.xml"
+
+dlq:
+  queue: "dlq_prod"

@@ -8,22 +8,6 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
 
-	<configuration-properties doc:name="Configuration properties" file="local.yaml" />
-
-	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config">
-		<http:listener-connection host="0.0.0.0" port="8081" />
-	</http:listener-config>
-
-	<db:config name="Database_Config" doc:name="Database Config">
-		<db:generic-connection url="jdbc:postgresql://${db.host}:${db.port}/${db.database}?sslmode=require" driverClassName="org.postgresql.Driver" user="${db.user}" password="${db.password}" />
-	</db:config>
-
-	<vm:config name="VM_Config" doc:name="VM Config" doc:id="8005652e-5dd5-46c3-b119-db2e189317da" >
-		<vm:queues >
-			<vm:queue queueName="dlq" />
-		</vm:queues>
-	</vm:config>
-	<configuration doc:name="Configuration" doc:id="3e542e69-70f1-4057-a3d3-f496a544c472" defaultErrorHandler-ref="Global_Error_Handler" />
 	<flow name="sys-fulfillment-apiFlow">
 		<http:listener doc:name="Listener" config-ref="HTTP_Listener_config" path="/fulfillment" allowedMethods="POST"/>
 		

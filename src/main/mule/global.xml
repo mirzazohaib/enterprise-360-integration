@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+
+    <configuration-properties doc:name="Configuration properties" file="properties/${env}.yaml" />
+
+    <secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" file="properties/secure-${env}.yaml" key="${key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+
+    <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config">
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+
+    <db:config name="Database_Config" doc:name="Database Config">
+		<db:generic-connection url="jdbc:postgresql://${db.host}:${db.port}/${db.database}?sslmode=require" driverClassName="org.postgresql.Driver" user="${db.user}" password="${secure::db.password}" />
+	</db:config>
+
+    <http:request-config name="HTTP_Request_Localhost" doc:name="HTTP Request Internal">
+		<http:request-connection host="localhost" port="${http.port}" />
+	</http:request-config>
+    
+    <http:request-config name="HTTP_Request_CRM" doc:name="HTTP Request CRM">
+        <http:request-connection protocol="HTTPS" host="${crm.host}" port="${crm.port}" />
+	</http:request-config>
+
+    <vm:config name="VM_Config" doc:name="VM Config">
+		<vm:queues>
+			<vm:queue queueName="${dlq.queue}" />
+		</vm:queues>
+	</vm:config>
+    
+    <configuration doc:name="Configuration" defaultErrorHandler-ref="Global_Error_Handler" />
+
+</mule>

@@ -1,0 +1,20 @@
+http:
+  port: "8081"
+
+db:
+  host: "ep-cool-cloud.aws.neon.tech" # REPLACE with your actual Neon Host
+  port: "5432"
+  user: "neondb_owner"
+  database: "neondb"
+
+crm:
+  host: "reqres.in"
+  port: "443"
+  basePath: "/api"
+
+inventory:
+  # Using app.home ensures it works on CloudHub and Local
+  mock_path: "${app.home}/examples/inventory-response.xml"
+
+dlq:
+  queue: "dlq"

@@ -67,6 +67,26 @@ graph TD
 
 ---
 
+## 🔐 Enterprise Architecture & Security
+
+### 1. Externalized Configuration Strategy
+
+**Goal:** Enable "Write Once, Deploy Anywhere" by removing hardcoded values.
+**Implementation:**
+
+- **Environment Isolation:** Configuration is split into `dev.yaml`, `sit.yaml`, and `prod.yaml`. The specific environment is selected at runtime via the `-Denv` variable.
+- **Centralized Management:** A single `global.xml` file manages all connector configurations (HTTP, Database, VM), ensuring consistency across all API flows.
+
+### 2. Secure Properties (Encryption at Rest)
+
+**Goal:** Protect sensitive credentials (database passwords) from exposure.
+**Implementation:**
+
+- **Mule Secure Properties Module:** Used to encrypt secrets using Blowfish/AES algorithms.
+- **Runtime Decryption:** Secrets are stored as `![encrypted_value]` in the source code and decrypted only in memory using a master key passed at runtime (`-Dkey=...`).
+
+---
+
 ## 📸 Implementation Evidence
 
 ### 1. Legacy System Modernization (SOAP to REST)
