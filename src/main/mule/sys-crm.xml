@@ -5,12 +5,11 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<http:request-config name="HTTP_Request_External" doc:name="HTTP Request config" doc:id="f1c6b314-a43f-42fb-819b-65db0c25c603" >
-		<http:request-connection protocol="HTTPS" host="reqres.in" port="443" />
-	</http:request-config>
-	<flow name="sys-crmFlow" doc:id="b61ea5e8-e0bb-4ca7-8518-78581ef21580" >
-		<http:listener doc:name="Listener" doc:id="04e0e6bd-c921-4f00-9393-596ef0d183cc" config-ref="HTTP_Listener_config" path="/crm/customer/{id}"/>
-		<http:request doc:name="Call Ext CRM" doc:id="d16464e8-26df-469f-ab00-b798d36e1ca6" config-ref="HTTP_Request_External" path="/api/users/{userId}">
+    
+    <flow name="sys-crmFlow" doc:id="048d7dea-ec26-4f4a-8ea4-55c07551481c" >
+		<http:listener doc:name="Listener" doc:id="33a70ac2-b1f4-487c-aa78-8063c4423626" config-ref="HTTP_Listener_config" path="/crm/customer/{id}"/>
+		
+        <http:request doc:name="Call Ext CRM" doc:id="3bc21cf4-7f09-4a15-900f-9403c1b4abc9" config-ref="HTTP_Request_CRM" path="/api/users/{userId}">
 			<http:headers ><![CDATA[#[{
     "x-api-key": "reqres-free-v1",
     "User-Agent": "Mozilla/5.0",
@@ -18,7 +17,8 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 }]]]></http:headers>
 			<http:uri-params ><![CDATA[#[{'userId': attributes.uriParams.id}]]]></http:uri-params>
 		</http:request>
-		<ee:transform doc:name="Standardize CRM JSON" doc:id="74821e63-0bb5-4dc0-88bd-4f220c2d58e0" >
+		
+		<ee:transform doc:name="Standardize CRM JSON" doc:id="2b324142-09e0-4296-8267-6c7e216251a9" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json

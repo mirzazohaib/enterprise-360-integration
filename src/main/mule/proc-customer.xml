@@ -5,19 +5,21 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="proc-customerFlow" doc:id="66a98b6c-a937-427c-a98e-de96a54c5db8" >
-		<http:listener doc:name="Listener" doc:id="b805faaa-21be-4c2e-8df1-6fc7983b1d68" config-ref="HTTP_Listener_config" path="/process/customer/{id}"/>
-		<set-variable value="#[attributes.uriParams.id]" doc:name="customerId" doc:id="7abcd4f8-1b4c-4423-8818-f2a08a0a0aa3" variableName="customerId"/>
-		<scatter-gather doc:name="Scatter-Gather" doc:id="f88bb4b9-da99-40fa-ae96-2cc8561e62e9" >
+	<flow name="proc-customerFlow" doc:id="9e936264-5e0d-4ad9-b40b-6b92a66b9cad" >
+		<http:listener doc:name="Listener" doc:id="4709d191-711d-47c0-beaa-2334c7863689" config-ref="HTTP_Listener_config" path="/process/customer/{id}"/>
+		
+        <set-variable value="#[attributes.uriParams.id]" doc:name="customerId" doc:id="a81efac9-4630-41f3-b754-db1d22bfde4b" variableName="customerId"/>
+		
+        <scatter-gather doc:name="Scatter-Gather" doc:id="ce8923b0-0419-4494-9c91-10b27b72e398" >
 			<route >
-				<http:request doc:name="Get CRM Profile" doc:id="927550bd-cf22-4aae-82e2-e2cd2b378a17" config-ref="HTTP_Request_Internal" path="/crm/customer/{customerId}">
+                <http:request doc:name="Get CRM Profile" doc:id="8282d735-6208-47fb-81f9-7c5efe0b746f" config-ref="HTTP_Request_Localhost" path="/crm/customer/{customerId}">
 					<http:uri-params ><![CDATA[#[{
     "customerId": attributes.uriParams.id
 }]]]></http:uri-params>
 				</http:request>
 			</route>
 			<route >
-				<ee:transform doc:name="Simulate Finance DB" doc:id="47edeefe-6456-47bb-823d-d1e4a758a521">
+				<ee:transform doc:name="Simulate Finance DB" doc:id="54a7113f-f28b-4c5d-bf89-67f67ef90a01">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
@@ -31,7 +33,7 @@ output application/json
 		</ee:transform>
 			</route>
 		</scatter-gather>
-		<ee:transform doc:name="Aggregate Results" doc:id="2b618705-b822-4921-b420-7e8ed7869101" >
+		<ee:transform doc:name="Aggregate Results" doc:id="4c2822ae-ed70-4760-8817-f495bcb3b596" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
