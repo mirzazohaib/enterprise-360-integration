@@ -1,34 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
-	<http:request-config name="HTTP_Request_Internal" doc:name="HTTP Request config" doc:id="5b33e298-4f1a-45e3-ba2d-5c8e7ba779bf" >
-		<http:request-connection host="localhost" port="8081" />
-	</http:request-config>
-	<flow name="proc-ordersFlow" doc:id="5ecc422f-8c95-4d97-943e-283b1022ff70" >
-		<http:listener doc:name="Listener" doc:id="61e3e894-2704-40a3-9ff7-09118cc0ca3e" config-ref="HTTP_Listener_config" path="/process/orders">
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    
+    <flow name="proc-ordersFlow" doc:id="e5868610-ea2e-47c5-80d0-7f8bdb21f1bc" >
+		<http:listener doc:name="Listener" doc:id="948c7d1e-dc16-45f1-9613-a5fcbf1a3ef9" config-ref="HTTP_Listener_config" path="/process/orders">
 			<http:response statusCode="#[vars.httpStatus default 200]" />
 			<http:error-response statusCode="#[vars.httpStatus default 500]" >
 				<http:body ><![CDATA[#[payload]]]></http:body>
 			</http:error-response>
 		</http:listener>
-		<set-variable value='#[payload]' doc:name="originalOrder" doc:id="318c9322-b3fe-4e6c-8c1f-7dbc2654dfe8" variableName="originalOrder"/>
-		<http:request doc:name="Check Inventory" doc:id="a326d60e-0017-41e7-942d-ff40b2f6f9b6" config-ref="HTTP_Request_Internal" path="/inventory" method="POST">
+		
+		<set-variable value='#[payload]' doc:name="originalOrder" doc:id="84a8c9ff-7bc2-4e0c-8d5e-c6201cab3d52" variableName="originalOrder"/>
+		
+		<http:request doc:name="Check Inventory" doc:id="aac3f4d5-bc12-458a-bb4e-07fc84f1ce97" config-ref="HTTP_Request_Localhost" path="/inventory" method="POST">
 			<http:body ><![CDATA[#[{
     "productId": vars.originalOrder.productId
 }]]]></http:body>
 		</http:request>
-		<choice doc:name="Choice" doc:id="06528069-d445-4e9d-adce-c3a7679bf3f9" >
+		
+		<choice doc:name="Choice" doc:id="7f58d9c3-42c5-4c69-b20c-422fb6d307bb" >
 			<when expression='payload.status == "IN_STOCK"'>
-				<http:request doc:name="Create Order" doc:id="bac1e78b-f102-4af8-a06c-a1c08eea5403" config-ref="HTTP_Request_Internal" method="POST" path="/fulfillment">
+                <http:request doc:name="Create Order" doc:id="ee6409c9-5881-4f21-8cb7-9f60e8feb9eb" config-ref="HTTP_Request_Localhost" method="POST" path="/fulfillment">
 					<http:body ><![CDATA[#[vars.originalOrder]]]></http:body>
 				</http:request>
 			</when>
 			<otherwise >
-				<set-payload value='#[output application/json&#10;---&#10;{&#10;    "status": "Rejected",&#10;    "reason": "Item is out of stock",&#10;    "productId": vars.originalOrder.productId&#10;}]' doc:name="Set Payload" doc:id="5e8a8449-7dfb-4603-9313-a7fd4dbaca32" />
-				<set-variable value="409" doc:name="httpStatus" doc:id="55f22e42-701f-4b6e-a8ca-5eda748b540c" variableName="httpStatus"/>
+				<ee:transform doc:name="Set Rejection Payload">
+					<ee:message>
+						<ee:set-payload resource="dataweave/modules/orders/rejection.dwl" />
+					</ee:message>
+				</ee:transform>
+				
+				<set-variable value="409" doc:name="httpStatus" doc:id="0d06a1d1-b069-4783-a9aa-5be2730b547d" variableName="httpStatus"/>
 			</otherwise>
 		</choice>
 	</flow>
