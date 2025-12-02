@@ -5,49 +5,32 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<flow name="proc-customerFlow" doc:id="9e936264-5e0d-4ad9-b40b-6b92a66b9cad" >
-		<http:listener doc:name="Listener" doc:id="4709d191-711d-47c0-beaa-2334c7863689" config-ref="HTTP_Listener_config" path="/process/customer/{id}"/>
+	
+	<flow name="proc-customerFlow" doc:id="b68a87fb-3d0a-46bd-8bdb-652dd099c592" >
+		<http:listener doc:name="Listener" doc:id="810d2984-0f26-471d-91bc-934021fc9c88" config-ref="HTTP_Listener_config" path="/process/customer/{id}"/>
 		
-        <set-variable value="#[attributes.uriParams.id]" doc:name="customerId" doc:id="a81efac9-4630-41f3-b754-db1d22bfde4b" variableName="customerId"/>
+        <set-variable value="#[attributes.uriParams.id]" doc:name="customerId" doc:id="d209df0d-d89a-4f9c-b506-c751c7fc221a" variableName="customerId"/>
 		
-        <scatter-gather doc:name="Scatter-Gather" doc:id="ce8923b0-0419-4494-9c91-10b27b72e398" >
+        <scatter-gather doc:name="Scatter-Gather" doc:id="b901094a-2b12-47a2-bac3-d5efb89459df" >
 			<route >
-                <http:request doc:name="Get CRM Profile" doc:id="8282d735-6208-47fb-81f9-7c5efe0b746f" config-ref="HTTP_Request_Localhost" path="/crm/customer/{customerId}">
-					<http:uri-params ><![CDATA[#[{
-    "customerId": attributes.uriParams.id
-}]]]></http:uri-params>
+                <http:request doc:name="Get CRM Profile" doc:id="745c8522-9154-4e1c-b117-bf33e1a0beb7" config-ref="HTTP_Request_Localhost" path="/crm/customer/{customerId}">
+					<http:uri-params><![CDATA[#[{
+                        "customerId": attributes.uriParams.id
+                    }]]]></http:uri-params>
 				</http:request>
 			</route>
 			<route >
-				<ee:transform doc:name="Simulate Finance DB" doc:id="54a7113f-f28b-4c5d-bf89-67f67ef90a01">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-    "totalSpend": 5000.00,
-    "lastTransaction": "2023-11-20",
-    "status": "Good Standing"
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+                <ee:transform doc:name="Simulate Finance DB" doc:id="1f44ac64-7986-4556-84f5-575c95a5d7e0">
+			        <ee:message>
+				        <ee:set-payload resource="dataweave/modules/customer/mock-finance.dwl" />
+			        </ee:message>
+		        </ee:transform>
 			</route>
 		</scatter-gather>
-		<ee:transform doc:name="Aggregate Results" doc:id="4c2822ae-ed70-4760-8817-f495bcb3b596" >
+		
+        <ee:transform doc:name="Aggregate Results" doc:id="c694f890-8a3a-4b49-a3f3-531d1aa8c769" >
 			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-    customerId: vars.customerId,
-    // Payload "0" is the result from Route 1 (CRM)
-    profile: payload."0".payload,
-    
-    // Payload "1" is the result from Route 2 (Finance)
-    finance_overview: payload."1".payload,
-    
-    generated_at: now()
-}]]></ee:set-payload>
+				<ee:set-payload resource="dataweave/modules/customer/aggregation.dwl" />
 			</ee:message>
 		</ee:transform>
 	</flow>

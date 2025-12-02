@@ -5,31 +5,25 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<file:config name="File_Config" doc:name="File Config" doc:id="ba58f6bf-e905-4e12-96ac-40e4d150d2c3" >
+	
+    <file:config name="File_Config" doc:name="File Config" doc:id="8caeb9a9-647a-419c-b339-bd0c91fec9a7" >
 		<file:connection workingDir="D:\Users\mirza\AnypointStudio\temp-files\finance_inbox" />
 	</file:config>
-	<flow name="sys-financeFlow" doc:id="3cb5ccc7-0796-4430-8970-83996c77000f" >
-		<file:listener doc:name="Poll Finance CSV" doc:id="4afa3fdf-8c73-4fd8-9c89-94e369271772" config-ref="File_Config" directory=".">
+	
+	<flow name="sys-financeFlow" doc:id="2043e105-3e85-416e-8da4-748ab797a6e4" >
+		<file:listener doc:name="Poll Finance CSV" doc:id="7897fd06-feb4-48fc-993f-8c8a4c65c844" config-ref="File_Config" directory=".">
 			<scheduling-strategy >
-				<fixed-frequency frequency="10" timeUnit="SECONDS" />
+                <fixed-frequency frequency="${finance.frequency}" timeUnit="SECONDS" />
 			</scheduling-strategy>
 			<file:matcher filenamePattern="*.csv" directories="EXCLUDE" />
 		</file:listener>
-		<ee:transform doc:name="CSV to JSON" doc:id="89c99c7d-553d-4883-908d-bbe22ca42d43" >
+		
+        <ee:transform doc:name="CSV to JSON" doc:id="bcc4f3a1-40f4-4bb3-9611-85fe7eddb9a0" >
 			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-// We cast payload "as Array" to silence the warning
-(payload as Array) map (record, index) -> {
-    transactionId: record.Tx_ID,
-    amount: record.Amount as Number,
-    date: record.Date,
-    description: record.Description,
-    source: "Finance SFTP Server"
-}]]></ee:set-payload>
+				<ee:set-payload resource="dataweave/modules/finance/csv-to-json.dwl" />
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="bb72d82c-7dad-491e-9dc1-ed0d54c4cfe3" message="New Finance Data Ingested: #[payload]"/>
+		
+		<logger level="INFO" doc:name="Logger" doc:id="c17686a4-0f1a-42f3-bfce-48c7a8fe2b34" message="New Finance Data Ingested: #[payload]"/>
 	</flow>
 </mule>

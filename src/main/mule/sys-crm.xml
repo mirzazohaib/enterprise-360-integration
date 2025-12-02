@@ -6,10 +6,10 @@
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
     
-    <flow name="sys-crmFlow" doc:id="048d7dea-ec26-4f4a-8ea4-55c07551481c" >
-		<http:listener doc:name="Listener" doc:id="33a70ac2-b1f4-487c-aa78-8063c4423626" config-ref="HTTP_Listener_config" path="/crm/customer/{id}"/>
+    <flow name="sys-crmFlow" doc:id="098681ac-7718-4564-9d60-4ab17325b297" >
+		<http:listener doc:name="Listener" doc:id="ff64c8af-5bb1-437f-b9af-4d3b5b1ceb34" config-ref="HTTP_Listener_config" path="/crm/customer/{id}"/>
 		
-        <http:request doc:name="Call Ext CRM" doc:id="3bc21cf4-7f09-4a15-900f-9403c1b4abc9" config-ref="HTTP_Request_CRM" path="/api/users/{userId}">
+        <http:request doc:name="Call Ext CRM" doc:id="f8acc302-bd2d-4947-89ad-c0b96cddaf44" config-ref="HTTP_Request_CRM" path="/api/users/{userId}">
 			<http:headers ><![CDATA[#[{
     "x-api-key": "reqres-free-v1",
     "User-Agent": "Mozilla/5.0",
@@ -18,19 +18,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<http:uri-params ><![CDATA[#[{'userId': attributes.uriParams.id}]]]></http:uri-params>
 		</http:request>
 		
-		<ee:transform doc:name="Standardize CRM JSON" doc:id="2b324142-09e0-4296-8267-6c7e216251a9" >
+        <ee:transform doc:name="Standardize CRM JSON" doc:id="0e61e270-976c-438f-bdde-165999aa288b" >
 			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-    customerId: payload.data.id,
-    // We explicitly cast "as String" to stop Studio from guessing it's a Date
-    fullName: (payload.data.first_name as String) ++ " " ++ (payload.data.last_name as String),
-    email: payload.data.email,
-    tier: "Gold", 
-    source: "External CRM (REST)"
-}]]></ee:set-payload>
+				<ee:set-payload resource="dataweave/modules/crm/canonical-map.dwl" />
 			</ee:message>
 		</ee:transform>
 	</flow>

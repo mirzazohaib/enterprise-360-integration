@@ -97,6 +97,26 @@ graph TD
 
 ---
 
+## 🧹 Code Quality & Maintainability
+
+### 1. Externalized DataWeave Logic
+
+**Goal:** Decouple business logic from flow definitions to improve readability and testability.
+**Implementation:**
+
+- All transformation scripts were extracted from XML flows into dedicated `.dwl` modules located in `src/main/resources/dataweave/modules`.
+- Scripts are organized by domain (`inventory`, `finance`, `crm`, `customer`) to prevent naming collisions.
+
+### 2. Standardized Configurations
+
+**Goal:** Prevent configuration drift and simplify environment management.
+**Implementation:**
+
+- Replaced ad-hoc local configurations with centralized **Global Elements** in `global.xml`.
+- Enforced consistent naming conventions (e.g., `HTTP_Request_Localhost`) across all Process APIs.
+
+---
+
 ## 📸 Implementation Evidence
 
 ### 1. Legacy System Modernization (SOAP to REST)
